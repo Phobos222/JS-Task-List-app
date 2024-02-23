@@ -3,62 +3,82 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 
 const app = express();
+const asyncHandler = require('express-async-handler');
+const ObjectId = mongoose.Types.ObjectId;
 
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect("mongodb://127.0.0.1:27017/js-task-list-app", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-    .then(() => console.log("Connected to DB"))
-    .catch(console.error);
 
+mongoose.connect('mongodb://127.0.0.1:27017/react-todo', {
+}).then(() => console.log("Connected to MongoDB")).catch(console.error);
+
+
+// Models
 const Todo = require('./models/Todo');
 
-app.get('/todos', async (req, res) => {
-    const todos = await Todo.find();
+app.get('/todos', asyncHandler(async(req, res) => {
+    try {
+      const todos = await Todo.find();
+      res.json(todos);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+}));
 
-    res.json(todos);
-});
+app.post('/todo/new', asyncHandler(async(req, res) => {
+    try {
+      const todo = new Todo({
+        text: req.body.text,
+      });
+      await todo.save();
+      res.json(todo);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+}));
+
+app.delete('/todo/delete/:id', asyncHandler(async(req, res) => {
+    const idToDelete = req.params.id;
+    const objectId = new ObjectId(idToDelete);
+
+    try {
+      const result = await Todo.findByIdAndDelete(objectId);
+
+      res.json({ success: true, result });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+}));
 
 
-app.post('/todo/new', (req,res) => {
-    const todo = new Todo({
-        text: req.body.text
-    });
+app.get('/todo/complete/:id', asyncHandler(async(req, res) => {
+  const idToUpdate = req.params.id;
+  const objectId = new ObjectId(idToUpdate);
 
-    todo.save();
+	const todo = await Todo.findById(objectId);
 
-    res.json(todo);
-});
+	todo.complete = !todo.complete;
 
+	todo.save();
 
-app.delete('/todo/delete/:id', async (req,res) => {
-    const result = await Todo.findByIdAndDelete(req.params.id);
+	res.json(todo);
+}));
 
-    res.json(result);
-});
+app.put('/todo/update/:id', asyncHandler(async(req, res) => {
+  const idToUpdate = req.params.id;
+  const objectId = new ObjectId(idToUpdate);
 
-
-app.get('/todo/complete/:id', async (req,res) => {
-    const todo = await Todo.findById(req.params.id);
-
-    todo.complete = !todo.complete;
-
-    todo.save();
-
-    res.json(todo);
-});
-
-app.put('/todo/update/:id', async (req, res) => {
-	const todo = await Todo.findById(req.params.id);
+	const todo = await Todo.findById(objectId);
 
 	todo.text = req.body.text;
 
 	todo.save();
 
 	res.json(todo);
-});
+}));
 
-app.listen(3001, () => console.log("Server started on port 3000"));
+app.listen(3001);

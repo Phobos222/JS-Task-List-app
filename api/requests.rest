@@ -12,4 +12,4 @@ Content-Type: application/json
 DELETE http://localhost:3001/todo/delete/
 
 ###
-PUT http://localhost:3001/todo/complete/65ce89cd5d82188229dde4c8
+PUT http://localhost:3001/todo/complete/

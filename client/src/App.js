@@ -55,7 +55,7 @@ function App() {
 
 	return (
 		<div className="App">
-			<h1>Welcome, Tyler</h1>
+			<h1>Welcome, Erik</h1>
 			<h4>Your tasks</h4>
 
 			<div className="todos">
@@ -67,7 +67,7 @@ function App() {
 
 						<div className="text">{todo.text}</div>
 
-						<div className="delete-todo" onClick={() => deleteTodo(todo._id)}>x</div>
+						<div className="delete-todo" onClick={(e)=> {e.stopPropagation(); deleteTodo(todo._id)}}>x</div>
 					</div>
 				)) : (
 					<p>You currently have no tasks</p>
